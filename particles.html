@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Point Test</title>
+	
+	<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	
+	<style>
+	#obviousCanvas{
+		width: 100%;
+		height: 700px;
+		border: 1px solid black;
+		clear: both;
+	}
+	.button{
+		height: 20px;
+		width: 70px;
+		background: #FFFFFF;
+		border: 1px solid black;
+		font-family: Helvetica, Arial;
+		display: inline-block;
+		text-align: center;
+		margin: 2px;
+		cursor: pointer;
+	}
+	.button:hover{
+		background: #CCCCCC;
+	}
+	.point{
+		fill: #FFCC00;
+	}
+	.factory{
+		stroke: #FFFFFF;
+	}
+	</style>
+</head>
+<body style="background:black;">
+	<div id="debug" style="display: inline; float: left;">&nbsp;</div>
+	<div style="float: right;">
+		<div id="startButton" class="button">START!</div>
+		<div id="endButton" class="button">END!</div>
+		<div id="stepButton" class="button">STEP!</div>
+		<div id="createButton" class="button">CREATE!</div>
+	</div>
+	<div id="obviousCanvas"></div>
+	
+	<script>
+		//var canvas = document.getElementById("obviousCanvas");
+		//var ctx = canvas.getContext("2d");
+		var points = [];
+		
+		var clicks = 0;
+		
+		var random = false;
+		
+		var numPoint = 500;
+		
+		var margin = {top: 0, right: 0, bottom: 0, left: 0},
+			width = parseInt($("#obviousCanvas").css("width")) - margin.left - margin.right,
+			height = parseInt($("#obviousCanvas").css("height")) - margin.top - margin.bottom;
+			
+		var svg = d3.select("#obviousCanvas")
+			.append('svg')
+			.attr("width", width)
+			.attr("height", height);
+		
+		var interval = 0;
+		
+		var factories = [];
+		
+		$('#startButton').click(function(){
+			//console.log('start');
+			interval = setInterval(function(){
+				//console.log('here');
+				update();
+				render();
+			}, 80);
+		});
+		
+		$('#endButton').click(function(){
+			//console.log('end');
+			random = false;
+			clearInterval(interval);
+		});
+		
+		$('#stepButton').click(function(){
+			//console.log('step');
+			update();
+			render();
+		});
+		
+		$('#createButton').click(function(){
+			random = true;
+			for(var i = 0; i < numPoint; i++){
+				createRandomPoint();
+			}
+			render();
+		});
+		
+		function update(){
+			//console.log(points.length);
+		
+			//$.each(points, function(index, point){
+			//	point.x += point.vx;
+			//	point.y += point.vy;
+			//	point.r += point.vr;
+			//});
+			
+			points = points.filter(function(point){
+				point.x += point.vx;
+				point.y += point.vy;
+				point.r += point.vr;
+				point.o -= point.vo;
+				point.vx += point.ax;
+				point.vy += point.ay;
+				return ((point.x + point.r) > 0 &&
+					(point.y + point.r) > 0 &&
+					(point.x - point.r) < width &&
+					(point.y - point.r) < height &&
+					point.r > 0 &&
+					point.o > 0);
+			});
+			
+			if(points.length < numPoint){
+				var len = points.length;
+				for(var i = 0; i < numPoint - len; i++){
+					var index = Math.floor(Math.random() * factories.length);
+					createPoint(factories[index].x, factories[index].y);
+				}
+			}
+		}
+		
+		function render(){
+			svg.selectAll("svg > *").remove();
+				
+			//var factoriesSVG = svg.selectAll(".factory")
+			//	.data(factories)
+			//	.enter().append('g')
+			//	.append('circle')
+			//	.attr('class', 'factory')
+			//	.attr('cx', function(d){return d.x;})
+			//	.attr('cy', function(d){return d.y;})
+			//	.attr('r', 20);
+		
+			var pointsSVG = svg.selectAll(".point")
+				.data(points)
+				.enter().append('g')
+				.append('circle')
+				.attr('class' , 'point')
+				.attr('cx', function(d){return d.x;})
+				.attr('cy', function(d){return d.y;})
+				.attr('r', function(d){
+					if(d.r < 0){
+						return 0;
+					} else{
+						return d.r;
+					}
+				})
+				.attr('style', function(d){
+					return 'opacity: ' + d.o + ';';
+				});
+		}
+		
+		function createPoint(pointX, pointY){
+			var point = {
+				x: pointX,
+				y: pointY, 
+				r: Math.floor((Math.random() * 5) + 1),
+				o: 1,
+				vx: Math.floor((Math.random() * 5)) - 0,
+				vy: Math.floor((Math.random() * 5)) - 5,
+				vr: 0,//Math.floor((Math.random() * 1)) - 0.5,
+				vo: (Math.random() * 0.05) + 0.01,
+				ax: (Math.random()) - 0.5,
+				ay: (Math.random()) - 0.5,
+			};
+			
+			points.push(point);
+			
+			//console.log('create point:', point);
+		}
+		
+		function createRandomPoint(){
+			createPoint(Math.floor((Math.random() * width) + 1), Math.floor((Math.random() * height) + 1));
+		}
+		
+		function createFactory(factoryX, factoryY){
+			var factory = {
+				x: factoryX,
+				y: factoryY
+			};
+			
+			factories.push(factory);
+		}
+		
+		$('#obviousCanvas').click(function(event){
+			//console.log((event.pageX - $(this).offset().left), (event.pageY - $(this).offset().top));
+			
+			//createPoint((event.pageX - $(this).offset().left), (event.pageY - $(this).offset().top));
+			createFactory((event.pageX - $(this).offset().left), (event.pageY - $(this).offset().top));
+			
+			render();
+		});
+		
+		$('#obviousCanvas').mousemove(function(event){
+			$('#debug').text((event.pageX - $(this).offset().left) + ", " + (event.pageY - $(this).offset().top));
+		});
+	</script>
+</body>
+</html>
