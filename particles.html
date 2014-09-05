@@ -1,28 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Point Test</title>
+	<title>Particles</title>
 	
 	<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 	<script src="http://d3js.org/d3.v3.min.js"></script>
 	
 	<style>
+	body{
+		font-family: Helvetica, Arial;
+		color: white;
+		background: #111111;
+	}
 	#obviousCanvas{
 		width: 100%;
-		height: 700px;
-		border: 1px solid black;
+		height: 900px;
+		/*border: 1px solid black*/;
 		clear: both;
+		background: #000000;
 	}
 	.button{
-		height: 20px;
-		width: 70px;
-		background: #FFFFFF;
-		border: 1px solid black;
-		font-family: Helvetica, Arial;
+		height: 30px;
+		width: 80px;
+		background: #666666;
+		/*border: 1px solid white;*/
 		display: inline-block;
 		text-align: center;
 		margin: 2px;
 		cursor: pointer;
+		border-radius: 10px;
+		line-height: 30px;
 	}
 	.button:hover{
 		background: #CCCCCC;
@@ -35,11 +42,11 @@
 	}
 	</style>
 </head>
-<body style="background:black;">
+<body>
 	<div id="debug" style="display: inline; float: left;">&nbsp;</div>
 	<div style="float: right;">
 		<div id="startButton" class="button">START!</div>
-		<div id="endButton" class="button">END!</div>
+		<div id="pauseButton" class="button">PAUSE!</div>
 		<div id="stepButton" class="button">STEP!</div>
 		<div id="createButton" class="button">CREATE!</div>
 	</div>
@@ -54,7 +61,7 @@
 		
 		var random = false;
 		
-		var numPoint = 500;
+		var numPoint = 1000;
 		
 		var margin = {top: 0, right: 0, bottom: 0, left: 0},
 			width = parseInt($("#obviousCanvas").css("width")) - margin.left - margin.right,
@@ -78,7 +85,7 @@
 			}, 80);
 		});
 		
-		$('#endButton').click(function(){
+		$('#pauseButton').click(function(){
 			//console.log('end');
 			random = false;
 			clearInterval(interval);
@@ -166,10 +173,10 @@
 			var point = {
 				x: pointX,
 				y: pointY, 
-				r: Math.floor((Math.random() * 5) + 1),
+				r: Math.floor((Math.random() * 4) + 1),
 				o: 1,
-				vx: Math.floor((Math.random() * 5)) - 0,
-				vy: Math.floor((Math.random() * 5)) - 5,
+				vx: Math.floor((Math.random() * 5)) - 2,
+				vy: Math.floor((Math.random() * 5)) - 2,
 				vr: 0,//Math.floor((Math.random() * 1)) - 0.5,
 				vo: (Math.random() * 0.05) + 0.01,
 				ax: (Math.random()) - 0.5,
