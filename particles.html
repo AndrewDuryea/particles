@@ -45,6 +45,9 @@
 <body>
 	<div id="debug" style="display: inline; float: left;">&nbsp;</div>
 	<div style="float: right;">
+		<form style="display: inline-block">
+			<input id="showFactoriesCheck" type="checkbox" name="showFactories" value="showFactories" onChange="render()">Show Factories</input>
+		</form>
 		<div id="startButton" class="button">START!</div>
 		<div id="pauseButton" class="button">PAUSE!</div>
 		<div id="stepButton" class="button">STEP!</div>
@@ -61,7 +64,7 @@
 		
 		var random = false;
 		
-		var numPoint = 1000;
+		var numPoint = 100;
 		
 		var margin = {top: 0, right: 0, bottom: 0, left: 0},
 			width = parseInt($("#obviousCanvas").css("width")) - margin.left - margin.right,
@@ -99,8 +102,16 @@
 		
 		$('#createButton').click(function(){
 			random = true;
-			for(var i = 0; i < numPoint; i++){
-				createRandomPoint();
+			//for(var i = 0; i < numPoint; i++){
+			//	createRandomPoint();
+			//}
+			
+			var t = 0;
+			
+			while(t <= 2 * Math.PI){
+				createPoint((20 * Math.cos(t)) + 100, (20 * Math.sin(t)) + 100);
+				
+				t += Math.PI / numPoint;
 			}
 			render();
 		});
@@ -130,25 +141,37 @@
 			});
 			
 			if(points.length < numPoint){
-				var len = points.length;
-				for(var i = 0; i < numPoint - len; i++){
-					var index = Math.floor(Math.random() * factories.length);
-					createPoint(factories[index].x, factories[index].y);
+				if(factories.length > 0){
+					var len = points.length;
+					for(var i = 0; i < numPoint - len; i++){
+						var index = Math.floor(Math.random() * factories.length);
+						createPointFromFactory(factories[index]);
+					}
 				}
 			}
 		}
 		
 		function render(){
 			svg.selectAll("svg > *").remove();
+			
+			if(document.getElementById('showFactoriesCheck').checked){
+				var factoriesSVG = svg.selectAll(".factory")
+					.data(factories)
+					.enter().append('g');
+					
+				factoriesSVG.append('circle')
+					.attr('class', 'factory')
+					.attr('cx', function(d){return d.x;})
+					.attr('cy', function(d){return d.y;})
+					.attr('r', 20);
 				
-			//var factoriesSVG = svg.selectAll(".factory")
-			//	.data(factories)
-			//	.enter().append('g')
-			//	.append('circle')
-			//	.attr('class', 'factory')
-			//	.attr('cx', function(d){return d.x;})
-			//	.attr('cy', function(d){return d.y;})
-			//	.attr('r', 20);
+				factoriesSVG.append('line')
+					.attr('x1', function(d){return d.x;})
+					.attr('y1', function(d){return d.y;})
+					.attr('x2', function(d){return d.x + (d.ax*100);})
+					.attr('y2', function(d){return d.y + (d.ay*100);})
+					.attr('style', 'stroke: white;');
+			}
 		
 			var pointsSVG = svg.selectAll(".point")
 				.data(points)
@@ -181,11 +204,28 @@
 				vo: (Math.random() * 0.05) + 0.01,
 				ax: (Math.random()) - 0.5,
 				ay: (Math.random()) - 0.5,
+				t: 0
 			};
 			
 			points.push(point);
+		}
+		
+		function createPointFromFactory(factory){
+			var point = {
+				x: factory.x,
+				y: factory.y, 
+				r: Math.floor((Math.random() * 4) + 1),
+				o: 1,
+				vx: Math.floor((Math.random() * 5)) - 2,
+				vy: Math.floor((Math.random() * 5)) - 2,
+				vr: 0,//Math.floor((Math.random() * 1)) - 0.5,
+				vo: (Math.random() * 0.05) + 0.01,
+				ax: factory.ax,
+				ay: factory.ay
+				
+			};
 			
-			//console.log('create point:', point);
+			points.push(point);
 		}
 		
 		function createRandomPoint(){
@@ -195,7 +235,9 @@
 		function createFactory(factoryX, factoryY){
 			var factory = {
 				x: factoryX,
-				y: factoryY
+				y: factoryY,
+				ax: (Math.random()) - 0.5,
+				ay: (Math.random()) - 0.5
 			};
 			
 			factories.push(factory);
